@@ -94,6 +94,7 @@
                 type="submit" 
                 id="submit-button"
                 class="download-button w-full py-4 text-lg font-bold bg-primary text-white rounded-xl shadow-lg hover:bg-emerald-600 focus:outline-none focus:ring-4 focus:ring-primary/50 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled 
             >
                 <i data-lucide="zap" class="w-5 h-5 mr-2"></i>
                 Get Media File
@@ -104,13 +105,13 @@
         <div id="status-message" class="mt-8 p-4 bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 rounded-lg">
             <h3 class="font-bold mb-2 flex items-center text-lg">
                 <i data-lucide="alert-triangle" class="w-5 h-5 mr-2"></i>
-                Technical Notice
+                Technical Notice: Server Required
             </h3>
             <p class="text-sm">
-                **Direct downloading is not possible with this web app alone.** To convert and download files from external sites (YouTube, Facebook), a powerful **server-side API** is required.
+                This front-end sends your request to a **placeholder server URL**. For real functionality, you must implement a powerful back-end service to handle external video fetching and conversion.
             </p>
             <p class="text-sm mt-2">
-                This front-end interface is ready to send the URL to a server. To make it functional, you would need to implement an endpoint that handles the conversion and file delivery.
+                **Current API Target:** <code>https://your-server-api.com/process</code> (Conceptual)
             </p>
         </div>
 
@@ -127,7 +128,11 @@
         const form = document.getElementById('download-form');
         const urlInput = document.getElementById('media-url');
         const formatSelect = document.getElementById('output-format');
+        const qualitySelect = document.getElementById('output-quality');
         const submitButton = document.getElementById('submit-button');
+
+        // CONCEPTUAL SERVER ENDPOINT
+        const API_ENDPOINT = "https://your-server-api.com/process"; 
 
         // --- Custom Message Box Implementation (Replaces alert/confirm) ---
         function showCustomMessage(title, message, type) {
@@ -166,59 +171,81 @@
             }, 10);
         }
 
-        // --- Form Submission Handler ---
-        form.addEventListener('submit', function(e) {
+        // --- Form Submission Handler (Uses fetch to simulate server communication) ---
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const url = urlInput.value.trim();
             const format = formatSelect.value;
+            const quality = qualitySelect.value;
             
             // Disable button and show loading state
             submitButton.disabled = true;
             submitButton.innerHTML = `<i data-lucide="loader-circle" class="w-5 h-5 mr-2 animate-spin"></i> Processing URL...`;
             lucide.createIcons();
-
-            // --- MOCK API CALL (Client-side simulation) ---
             
-            // Simulate network delay and server processing time
-            setTimeout(() => {
-                
-                // Re-enable button
+            // --- ACTUAL FETCH LOGIC (Simulated for this environment) ---
+            try {
+                // In a real app, you would fetch from your backend service here:
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mediaUrl: url, format: format, quality: quality })
+                });
+
+                // Since this environment cannot reach the conceptual endpoint, 
+                // we simulate a positive response after a delay.
+                // NOTE: If you replace API_ENDPOINT with a functional URL, this simulation should be removed.
+
+                await new Promise(resolve => setTimeout(resolve, 2500)); 
+
+                if (response.ok) {
+                    // MOCK SUCCESS: Assume server returned a download URL.
+                    // const result = await response.json(); 
+                    
+                    showCustomMessage(
+                        "Download Simulated!",
+                        `Your media file is ready in **${format.toUpperCase()}** format! In a live app, your download would now start automatically.`,
+                        "success"
+                    );
+                    
+                    // window.location.href = result.downloadUrl; // Trigger download
+                    
+                } else {
+                    // MOCK FAILURE: Simulate a common server error
+                     showCustomMessage("Processing Error (Simulated)", `The placeholder server rejected the URL or format. Check URL validity. (Status: 400)`, "error");
+                }
+
+            } catch (error) {
+                // This catch block would normally handle network failures.
+                showCustomMessage(
+                    "Connection Warning", 
+                    `Network error or the conceptual server endpoint is not running. Check console for details. (This is expected in a sandboxed environment.)`, 
+                    "error"
+                );
+            } finally {
+                // Re-enable button and clear URL input
                 submitButton.disabled = false;
                 submitButton.innerHTML = `<i data-lucide="zap" class="w-5 h-5 mr-2"></i> Get Media File`;
                 lucide.createIcons();
-
-                // Display custom message explaining the server limitation
-                showCustomMessage(
-                    "Action Required!",
-                    `The conversion for the URL you submitted in **${format.toUpperCase()}** format is ready on the *simulated* server. Please note, in a real application, a backend service would now deliver the file to your browser.`,
-                    "error"
-                );
-                
-                // Clear the URL input after simulated processing
                 urlInput.value = '';
-
-            }, 2500); // 2.5 second simulated delay
+            }
         });
         
         // --- Input Validation for Enabling Button ---
-        urlInput.addEventListener('input', () => {
+        function checkInputValidity() {
              // Simple check if the input looks like a URL
              if (urlInput.value.trim().length > 10 && urlInput.checkValidity()) {
                  submitButton.disabled = false;
              } else {
                  submitButton.disabled = true;
              }
-        });
+        }
+        
+        urlInput.addEventListener('input', checkInputValidity);
         
         // Initial check on load
-        window.addEventListener('load', () => {
-            if (urlInput.value.trim().length > 10 && urlInput.checkValidity()) {
-                 submitButton.disabled = false;
-             } else {
-                 submitButton.disabled = true;
-             }
-        });
+        window.addEventListener('load', checkInputValidity);
     </script>
 
 </body>
